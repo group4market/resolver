@@ -72,7 +72,15 @@ resolve_abi = json.loads('''
       ],
       "outputs": [],
       "stateMutability": "nonpayable"
-    }]''')
+},
+{
+  "type": "function",
+  "name": "distribute",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+}
+]''')
 
 async def subscribe_to_transfer_events():
     async with AsyncWeb3(WebSocketProvider(rpc_url)) as w3:
@@ -171,5 +179,12 @@ async def subscribe_to_transfer_events():
             signed_tx = w3.eth.account.sign_transaction(tx, private_key=pk)
             tx_hash = await w3.eth.send_raw_transaction(signed_tx.raw_transaction)
             print(f"Market resolved with transaction hash: {tx_hash.hex()}")
+
+            print(f"Distributing rewards for market ID {market_id}")
+
+            tx = await market_contract.functions.distribute().build_transaction({"chainId": chain_id, "from": keeper.address, "nonce": nonce + 1})
+            signed_tx = w3.eth.account.sign_transaction(tx, private_key=pk)
+            tx_hash = await w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+
 
 asyncio.run(subscribe_to_transfer_events())
